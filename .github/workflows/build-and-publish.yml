@@ -67,11 +67,16 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT 
           echo "isSnapshot=$isSnapshot" >> $GITHUB_OUTPUT 
 
-      # Initializes the CodeQL tools for scanning.
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-        with:
-          languages: ${{ matrix.language }}
+      - name: Fetch CodeQL
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          gh extension install github/gh-codeql
+          gh codeql version
+          printf "CODEQL_FETCHED_CODEQL_PATH=" >> "${GITHUB_ENV}"
+          gh codeql version --format=json | jq -r .unpackedLocation >> "${GITHUB_ENV}"
+          gh codeql version --format=json | jq -r .unpackedLocation >> "${GITHUB_PATH}"
 
       - name: Generate query help files
         run: |
