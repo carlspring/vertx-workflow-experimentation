@@ -1,0 +1,10 @@
+---
+name: carlspring/vertx-codeql-queries
+version: 1.0.0-alpha
+library: false
+warnOnImplicitThis: false
+extractor: java
+dependencies:
+    codeql/java-all: "*"
+    codeql/suite-helpers: "*"
+license: Apache-2.0
