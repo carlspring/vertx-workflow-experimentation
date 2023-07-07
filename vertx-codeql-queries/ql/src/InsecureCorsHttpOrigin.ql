@@ -35,3 +35,4 @@ where
 select
   call,
   "Insecure CORS configuration which allows unencrypted HTTP connections."
+
