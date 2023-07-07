@@ -1,0 +1,36 @@
+<!DOCTYPE qhelp PUBLIC
+        "-//Semmle//qhelp//EN"
+        "qhelp.dtd">
+<qhelp>
+    <overview>
+        <p>
+            An HTTP server with a CORS configuration that allows unsecured HTTP connection is prone to exploits.
+        </p>
+    </overview>
+
+    <recommendation>
+        <p>Make sure the connection to the origins is established over HTTPS.</p>
+    </recommendation>
+    <example>
+        <p>Instead of an insecure HTTP connection to the origin, such as in the example below:</p>
+
+        <sample src="InsecureCorsHttpOrigin.java" />
+
+        <p>set up SSL like this:</p>
+
+        <sample src="SecureCorsServer.java" />
+    </example>
+
+    <references>
+        <li>
+            <a href="https://vertx.io/docs/vertx-core/java/#_writing_http_servers_and_clients">
+                Vert.x documentation
+            </a>
+        </li>
+        <li>
+            <a href="https://www.freecodecamp.org/news/exploiting-cors-guide-to-pentesting/">
+                Exploiting CORS – How to pen-test Cross-Origin Resource Sharing Vulnerabilities
+            </a>
+        </li>
+    </references>
+</qhelp>

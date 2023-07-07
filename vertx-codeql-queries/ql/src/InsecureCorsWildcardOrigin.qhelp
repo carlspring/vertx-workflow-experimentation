@@ -1,0 +1,39 @@
+<!DOCTYPE qhelp PUBLIC
+        "-//Semmle//qhelp//EN"
+        "qhelp.dtd">
+<qhelp>
+    <overview>
+        <p>
+            An HTTP server with a CORS configuration that allows wildcard origins is insecure, as it allows connections
+            from any host.
+        </p>
+    </overview>
+
+    <recommendation>
+        <p>Add explicit origins when configuring the <code>CorsHandler</code>.</p>
+    </recommendation>
+
+    <example>
+        <p>Instead of adding a wildcard origin, such as in the example below:</p>
+
+        <sample src="InsecureCorsWildcardOrigin.java" />
+
+        <p>define the origins explicitly like this:</p>
+
+        <sample src="SecureCorsServer.java" />
+    </example>
+
+    <references>
+        <li>
+            <a href="https://vertx.io/docs/vertx-core/java/#_writing_http_servers_and_clients">
+                Vert.x documentation
+            </a>
+        </li>
+        <li>
+            <a href="https://www.freecodecamp.org/news/exploiting-cors-guide-to-pentesting/">
+                Exploiting CORS – How to Pentest Cross-Origin Resource Sharing Vulnerabilities
+            </a>
+        </li>
+
+    </references>
+</qhelp>
