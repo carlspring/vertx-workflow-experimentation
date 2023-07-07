@@ -1,0 +1,46 @@
+<!DOCTYPE qhelp PUBLIC
+        "-//Semmle//qhelp//EN"
+        "qhelp.dtd">
+<qhelp>
+    <overview>
+        <p>
+            An HTTP server which does not use SSL/TLS is vulnerable to man-in-the-middle attacks.
+        </p>
+        <p>
+            Please, note that it may be safe to ignore this, only if you intend your application to be placed
+            behind a loadbalancer, which is itself securing the connections with the appropriate certificates.
+        </p>
+    </overview>
+
+    <recommendation>
+        <p>Use SSL/TLS to encrypt the communication between the client and the server.</p>
+    </recommendation>
+
+    <example>
+        <p>Instead of setting up a plain HTTP server that doesn't use SSL, such as this one:</p>
+
+        <sample src="InsecureHttpServer.java" />
+
+        <p>
+            when creating an HTTP server, the <code>setSsl</code> method should be called on the
+            <code>HttpServerOptions</code>
+            object, and the <code>setKeyStoreOptions</code> method should be called on the
+            <code>HttpServerOptions</code>
+            object with a <code>KeyStoreOptions</code>
+            object as an argument.
+
+            For example, code such as the one illustrated below should be used to create an HTTP server and secure
+            it with SSL:
+        </p>
+
+        <sample src="SecureHttpServer.java" />
+    </example>
+
+    <references>
+        <li>
+            <a href="https://vertx.io/docs/vertx-core/java/#_writing_http_servers_and_clients">
+                Vert.x documentation
+            </a>
+        </li>
+    </references>
+</qhelp>

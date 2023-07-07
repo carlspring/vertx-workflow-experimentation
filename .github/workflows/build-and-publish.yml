@@ -1,0 +1,125 @@
+name: build-and-publish
+run-name: Build and publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      BRANCH:
+        type: choice
+        options:
+          - master
+        description: Branch to build and push
+        default: master
+        required: true
+
+  repository_dispatch:
+    types: [ "ql:publish-command" ]
+
+#env:
+#  GIT_REF: ${{ inputs.BRANCH != '' && inputs.BRANCH || github.event.client_payload.pull_request.head.sha }}
+#  VERSION_REF: ${{ inputs.BRANCH != '' && inputs.BRANCH || format('PR-{0}', github.event.client_payload.github.payload.issue.number) }}
+
+# These permissions are required to allow writing comments and reporting check status.
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+  statuses: write
+  issues: write
+  checks: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.GIT_REF }}
+
+      - name: Get git commit hash
+        uses: pr-mpt/actions-commit-hash@v2
+        id: commit
+
+      - name: Configure dynamic variables
+        id: vars
+        run: |
+          # For local dev.
+          # GITHUB_OUTPUT=/dev/stdout
+          ref=${{ env.GIT_REF }}
+          echo "Ref => $ref"
+          
+          # The version of the CodeQL query pack
+          version=`cat vertx-codeql-queries/ql/src/qlpack.yml | head -n 3 | tail -n 1 | cut -d " " -f 2`
+          
+          # Check if this is a snapshot version
+          isSnapshot=false
+          if [[ $version == *"-alpha" ]]; then
+              isSnapshot=true
+          fi
+          
+          echo "version=$version" >> $GITHUB_OUTPUT 
+          echo "isSnapshot=$isSnapshot" >> $GITHUB_OUTPUT 
+
+      - name: Build
+        run: |
+
+      - name: Generate query help files
+        run: |
+          cd vertx-codeql-queries/ql/src
+          codeql generate query-help *.qhelp --format=markdown -o .
+          ls -al
+
+      - name: Remove previous query pack version for snapshot
+        if: ${{ always() && (steps.vars.outputs.isSnapshot == 'true') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd vertx-codeql-queries/ql/src
+          echo "Removing previous snapshot version..."
+          codeql pack remove vertx-codeql-queries --github-auth-stdin --version ${{ steps.vars.outputs.version }}
+
+      - name: Publish CodeQL query pack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd vertx-codeql-queries/ql/src
+          codeql pack publish --github-auth-stdin --allow-prerelease
+
+      - name: Post job report comment reaction
+        uses: peter-evans/create-or-update-comment@v3
+        if: ${{ always() && (github.event.client_payload.slash_command.command != '') }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          reactions: ${{ job.status == 'success' && 'hooray' || '-1' }}
+
+      - name: Post job report comment failure
+        uses: peter-evans/create-or-update-comment@v3
+        if: ${{ failure() && (github.event.client_payload.slash_command.command != '') }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
+          reactions: ${{ job.status == 'success' && 'hooray' || '-1' }}
+          body: |
+            > 🔴 Failed to publish the package. For more details check the [build log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+      - name: Post job report add comment on success push
+        uses: peter-evans/create-or-update-comment@v3
+        if: ${{ success() && (github.event.client_payload.slash_command.command != '') }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
+          body: |
+            #### Status
+            
+            🟢 Pushed revision `${{ steps.vars.outputs.version }}` to [carlspring/vertx-codeql-queries:${{ steps.vars.outputs.version }}]https://github.com/users/carlspring/packages/container/package/vertx-codeql-queries).
+            
+            #### Build log
+            
+            * For more details check the [build log](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+            
