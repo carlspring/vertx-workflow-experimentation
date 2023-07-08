@@ -94,13 +94,13 @@ jobs:
 #          codeql pack remove vertx-codeql-queries --github-auth-stdin --version ${{ steps.vars.outputs.version }}
 
       - name: Get Version ID from the Versions List
-        id: version-id
+        id: versionId
         run: |
-          curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/user/packages/container/vertx-codeql-queries/versions >> $HOME/versionIds.json
-          echo "versionId=$(jq -r '.[] | select(.name == "1.0.0-alpha").id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
+          curl -X GET -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" https://api.github.com/user/packages/container/vertx-codeql-queries/versions >> $HOME/versionIds.json
+          echo "versionId=$(| jq -r '.[] | select(.metadata.container.tags[0] == "1.0.0-alpha").id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
 
       - name: Print Version ID
-        run: echo "The selected Version ID is ${{ steps.version-id.outputs.VERSION_ID }}"
+        run: echo "The selected Version ID is ${{ steps.versionId.outputs.versionId }}"
       - uses: actions/delete-package-versions@v4
         with:
           # Can be a single package version id, or a comma separated list of package version ids.
