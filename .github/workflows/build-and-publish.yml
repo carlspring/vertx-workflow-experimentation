@@ -98,7 +98,7 @@ jobs:
         with:
           # Can be a single package version id, or a comma separated list of package version ids.
           # Defaults to an empty string.
-          package-version-ids: ${{ steps.vars.outputs.version }}
+          # package-version-ids: ${{ steps.vars.outputs.version }}
 
           # Owner of the package.
           # Defaults to the owner of the repo executing the workflow.
