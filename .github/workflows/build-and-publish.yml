@@ -84,14 +84,34 @@ jobs:
           codeql generate query-help *.qhelp --format=markdown -o .
           ls -al
 
+#      - name: Remove previous query pack version for snapshot
+#        if: ${{ always() && (steps.vars.outputs.isSnapshot == 'true') }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          cd vertx-codeql-queries/ql/src
+#          echo "Removing previous snapshot version..."
+#          codeql pack remove vertx-codeql-queries --github-auth-stdin --version ${{ steps.vars.outputs.version }}
+
       - name: Remove previous query pack version for snapshot
-        if: ${{ always() && (steps.vars.outputs.isSnapshot == 'true') }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cd vertx-codeql-queries/ql/src
-          echo "Removing previous snapshot version..."
-          codeql pack remove vertx-codeql-queries --github-auth-stdin --version ${{ steps.vars.outputs.version }}
+        uses: actions/delete-package-versions@v4
+        with:
+          # Can be a single package version id, or a comma separated list of package version ids.
+          # Defaults to an empty string.
+          package-version-ids: ${{ steps.vars.outputs.version }}
+
+          # Owner of the package.
+          # Defaults to the owner of the repo executing the workflow.
+          # Required if deleting a version from a package hosted in a different org than the one executing the workflow.
+          owner: carlspring
+
+          # Name of the package.
+          # Required
+          package-name: vertx-codeql-queries
+
+          # Type of the package. Can be one of container, maven, npm, nuget, or rubygems.
+          # Required
+          package-type: container
 
       - name: Publish CodeQL query pack
         env:
