@@ -97,7 +97,7 @@ jobs:
         id: versionId
         run: |
           curl -X GET -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" https://api.github.com/user/packages/container/vertx-codeql-queries/versions >> $HOME/versionIds.json
-          echo "versionId=$(| jq -r '.[] | select(.metadata.container.tags[0] == "1.0.0-alpha").id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
+          echo "versionId=$(jq -r '.[] | select(.metadata.container.tags[0] == "1.0.0-alpha").id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
 
       - name: Print Version ID
         run: echo "The selected Version ID is ${{ steps.versionId.outputs.versionId }}"
