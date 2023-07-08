@@ -93,9 +93,20 @@ jobs:
 #          echo "Removing previous snapshot version..."
 #          codeql pack remove vertx-codeql-queries --github-auth-stdin --version ${{ steps.vars.outputs.version }}
 
-      - name: Remove previous query pack version for snapshot
-        uses: actions/delete-package-versions@v4
+      - name: Get Version ID from the Versions List
+        id: version-id
+        run: |
+          curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/orgs/YOUR_ORG/packages/YOUR_PACKAGE_TYPE/YOUR_PACKAGE_NAME/versions >> $HOME/versionIds.json
+          echo "versionId=$(jq -r '.[] | select(.name == "1.1.7").id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
+
+      - name: Print Version ID
+        run: echo "The selected Version ID is ${{ steps.version-id.outputs.VERSION_ID }}"
+      - uses: actions/delete-package-versions@v4
         with:
+          # Can be a single package version id, or a comma separated list of package version ids.
+          # Defaults to an empty string.
+          package-version-ids: '${{ steps.version-id.outputs.versionId }}'
+
           # Owner of the package.
           # Defaults to the owner of the repo executing the workflow.
           # Required if deleting a version from a package hosted in a different org than the one executing the workflow.
