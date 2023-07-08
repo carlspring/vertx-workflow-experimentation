@@ -96,7 +96,7 @@ jobs:
       - name: Get Version ID from the Versions List
         id: version-id
         run: |
-          curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/orgs/YOUR_ORG/packages/YOUR_PACKAGE_TYPE/YOUR_PACKAGE_NAME/versions >> $HOME/versionIds.json
+          curl -X GET -H "Authorization: Bearer ${{env.GITHUB_TOKEN}}" https://api.github.com/users/carlspring/packages/container/vertx-codeql-queries/versions >> $HOME/versionIds.json
           echo "versionId=$(jq -r '.[] | select(.name == "1.1.7").id' $HOME/versionIds.json)" >> $GITHUB_OUTPUT
 
       - name: Print Version ID
