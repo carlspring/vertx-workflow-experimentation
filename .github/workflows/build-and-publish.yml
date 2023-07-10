@@ -96,7 +96,7 @@ jobs:
       - name: Get Version ID from the Versions List
         id: versionId
         run: |
-          echo "versionId=$(curl -X GET -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" https://api.github.com/user/packages/container/vertx-codeql-queries/versions | jq -r '.[] | select(.metadata.container.tags[0] == "1.0.0-alpha").id')" >> $GITHUB_OUTPUT
+          echo "versionId=$(curl -s -X GET -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" https://api.github.com/user/packages/container/vertx-codeql-queries/versions | jq -r '.[] | select(.metadata.container.tags[0] == "1.0.0-alpha").id')" >> $GITHUB_OUTPUT
 
       - name: Print Version ID
         run: echo "The selected Version ID is ${{ steps.versionId.outputs.versionId }}"
