@@ -94,13 +94,42 @@ jobs:
 #          codeql pack remove vertx-codeql-queries --github-auth-stdin --version ${{ steps.vars.outputs.version }}
 
       - name: Get Version ID from the Versions List
-        id: versionId
+        id: package
         run: |
-          echo "versionId=$(curl -s -X GET -H "Authorization: Bearer ${{ env.GITHUB_TOKEN }}" https://api.github.com/user/packages/container/vertx-codeql-queries/versions | jq -r '.[] | select(.metadata.container.tags[0] == "1.0.0-alpha").id')" >> $GITHUB_OUTPUT
+          # For dev
+          #GITHUB_TOKEN=$(cat /tmp/token)
+          #VERSION=1.0.0-alpha
+          if [[ -z $GITHUB_OUTPUT ]]; then
+              GITHUB_OUTPUT=/dev/stdout
+          fi
+          
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          VERSION=${{ steps.vars.outputs.version }}
+          
+          URL="https://api.github.com/user/packages/container/vertx-codeql-queries/versions"
+          RESPONSE=$(echo "Sending request to $URL" > /dev/stdout; curl -sS -L -D /dev/stdout -o versions.json -w '%{http_code}' -X GET -H "Authorization: Bearer $GITHUB_TOKEN" $URL || echo "")
+          HEADERS=$(echo "$RESPONSE" | head -n -2 | sed 's/^/  /')
+          STATUS_CODE=$(echo "$RESPONSE" | tail -n 1)
+          RESPONSE=$(cat versions.json)
+          
+          # Fail step on request error?
+          [[ $STATUS_CODE != "200" && $STATUS_CODE != "404" ]] && { echo "Request to $URL returned response ${STATUS_CODE}" ; exit 1; }
+          
+          if [[ $STATUS_CODE == "404" ]]; then 
+              echo "Version $VERSION has not been found. Version value will be 'unknown'."
+              echo "versionId=unknown" >> $GITHUB_OUTPUT
+              exit 0
+          fi
+          
+          VERSION_ID=$(echo "$RESPONSE" | jq --arg VERSION "$VERSION" -r '.[]|select(.metadata.container.tags|any(. == $VERSION)).id')
+          echo "versionId=${VERSION_ID}" >> $GITHUB_OUTPUT
 
       - name: Print Version ID
+        if: ${{ steps.package.versionId != 'unknown' }}
         run: echo "The selected Version ID is ${{ steps.versionId.outputs.versionId }}"
+
       - uses: actions/delete-package-versions@v4
+        if: ${{ steps.package.versionId != 'unknown' }}
         with:
           # Can be a single package version id, or a comma separated list of package version ids.
           # Defaults to an empty string.
