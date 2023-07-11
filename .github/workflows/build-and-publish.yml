@@ -51,19 +51,22 @@ jobs:
         id: vars
         run: |
           # For local dev.
-          # GITHUB_OUTPUT=/dev/stdout
-          ref=${{ env.GIT_REF }}
-          echo "Ref => $ref"
+          if [[ -z $GITHUB_OUTPUT ]]; then
+              GITHUB_OUTPUT=/dev/stdout
+          fi
           
           # The version of the CodeQL query pack
-          version=`cat vertx-codeql-queries/ql/src/qlpack.yml | head -n 3 | tail -n 1 | cut -d " " -f 2`
+          version=`cat qlpack.yml | yq e ".version" -`
           
           # Check if this is a snapshot version
           isSnapshot=false
           if [[ $version == *"-alpha" ]]; then
               isSnapshot=true
           fi
-          
+
+          echo "Version:     $version"
+          echo "Is snapshot: $isSnapshot"
+
           echo "version=$version" >> $GITHUB_OUTPUT 
           echo "isSnapshot=$isSnapshot" >> $GITHUB_OUTPUT 
 
@@ -112,6 +115,8 @@ jobs:
           STATUS_CODE=$(echo "$RESPONSE" | tail -n 1)
           RESPONSE=$(cat versions.json)
           
+          echo "Response: \n ${RESPONSE}"
+          
           # Fail step on request error?
           [[ $STATUS_CODE != "200" && $STATUS_CODE != "404" ]] && { echo "Request to $URL returned response ${STATUS_CODE}" ; exit 1; }
           
@@ -122,18 +127,19 @@ jobs:
           fi
           
           VERSION_ID=$(echo "$RESPONSE" | jq --arg VERSION "$VERSION" -r '.[]|select(.metadata.container.tags|any(. == $VERSION)).id')
+          echo "Found version id is: ${VERSION_ID}"
           echo "versionId=${VERSION_ID}" >> $GITHUB_OUTPUT
 
       - name: Print Version ID
-        if: ${{ steps.package.versionId != 'unknown' }}
-        run: echo "The selected Version ID is ${{ steps.versionId.outputs.versionId }}"
+        if: ${{ steps.package.outputs.versionId != 'unknown' }}
+        run: echo "The selected Version ID is ${{ steps.package.outputs.versionId }}"
 
       - uses: actions/delete-package-versions@v4
-        if: ${{ steps.package.versionId != 'unknown' }}
+        if: ${{ steps.package.outputs.versionId != 'unknown' }}
         with:
           # Can be a single package version id, or a comma separated list of package version ids.
           # Defaults to an empty string.
-          package-version-ids: '${{ steps.version-id.outputs.versionId }}'
+          package-version-ids: '${{ steps.package.outputs.versionId }}'
 
           # Owner of the package.
           # Defaults to the owner of the repo executing the workflow.
