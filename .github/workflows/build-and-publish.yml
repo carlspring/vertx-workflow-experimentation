@@ -167,7 +167,7 @@ jobs:
 
       - name: Publish CodeQL query pack
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           cd vertx-codeql-queries/ql/src
           codeql pack publish --github-auth-stdin --allow-prerelease
