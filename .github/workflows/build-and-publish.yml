@@ -160,7 +160,7 @@ jobs:
           # When `min-versions-to-keep` is 0, all pre-release versions get deleted.
           # Defaults to false.
           # Cannot be used with `num-old-versions-to-delete` and `ignore-versions`.
-          delete-only-pre-release-versions: true
+          # delete-only-pre-release-versions: true
 
       - name: Publish CodeQL query pack
         env:
