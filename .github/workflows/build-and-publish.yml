@@ -138,7 +138,7 @@ jobs:
       - uses: actions/delete-package-versions@v4
         if: ${{ steps.package.outputs.versionId != 'unknown' }}
         with:
-          token: ${{ secrets.GITHUB_PAT }}
+          token: ${{ secrets.PAT }}
 
           # Can be a single package version id, or a comma separated list of package version ids.
           # Defaults to an empty string.
