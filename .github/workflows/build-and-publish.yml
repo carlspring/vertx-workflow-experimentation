@@ -128,6 +128,11 @@ jobs:
           fi
           
           VERSION_ID=$(echo "$RESPONSE" | jq --arg VERSION "$VERSION" -r '.[]|select(.metadata.container.tags|any(. == $VERSION)).id')
+          if [[ -z $VERSION_ID ]]; then
+              echo "Version $VERSION has not been found. Version value will be 'unknown'."
+              VERSION_ID='unknown'
+          fi
+
           echo "Found version id is: ${VERSION_ID}"
           echo "versionId=${VERSION_ID}" >> $GITHUB_OUTPUT
 
