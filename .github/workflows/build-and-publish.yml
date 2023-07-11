@@ -56,7 +56,7 @@ jobs:
           fi
           
           # The version of the CodeQL query pack
-          version=`cat qlpack.yml | yq e ".version" -`
+          version=`cat vertx-codeql-queries/ql/src/qlpack.yml | yq e ".version" -`
           
           # Check if this is a snapshot version
           isSnapshot=false
