@@ -175,7 +175,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         run: |
           cd vertx-codeql-queries/ql/src
-          codeql pack publish --github-auth-stdin --allow-prerelease
+          codeql pack publish --allow-prerelease
 
       - name: Post job report comment reaction
         uses: peter-evans/create-or-update-comment@v3
